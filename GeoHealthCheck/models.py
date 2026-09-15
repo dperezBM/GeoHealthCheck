@@ -371,8 +371,8 @@ class ResourceNotification(DB.Model):
     recipient_id = DB.Column(DB.Integer,
                              DB.ForeignKey('recipient.id'),
                              primary_key=True)
-    resource = DB.relationship('Resource', lazy=False)
-    recipient = DB.relationship('Recipient', lazy=False)
+    resource = DB.relationship('Resource', lazy=False, overlaps="recipients,resources")
+    recipient = DB.relationship('Recipient', lazy=False, overlaps="recipients,resources")
 
 
 class Resource(DB.Model):
@@ -788,13 +788,13 @@ def get_runs_status_count(success=True):
 def get_first_run():
     """return last Run"""
     return DB.session.query(Run).filter(
-        Run.identifier == DB.session.query(func.min(Run.identifier))).first()
+        Run.identifier == DB.session.query(func.min(Run.identifier)).scalar_subquery()).first()
 
 
 def get_last_run():
     """return last Run"""
     return DB.session.query(Run).filter(
-        Run.identifier == DB.session.query(func.max(Run.identifier))).first()
+        Run.identifier == DB.session.query(func.max(Run.identifier)).scalar_subquery()).first()
 
 
 def get_last_run_per_resource():
