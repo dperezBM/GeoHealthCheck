@@ -139,7 +139,7 @@ def get_locale():
 
 @LOGIN_MANAGER.user_loader
 def load_user(identifier):
-    return User.query.get(int(identifier))
+    return DB.session.get(User, int(identifier))
 
 
 @LOGIN_MANAGER.unauthorized_handler
