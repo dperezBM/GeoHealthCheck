@@ -30,6 +30,7 @@
 import unittest
 import os
 
+from init import App
 from models import DB, load_data, Resource
 from views import get_probes_avail
 from plugin import Plugin
