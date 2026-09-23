@@ -41,6 +41,11 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class GeoHealthCheckTest(unittest.TestCase):
     def setUp(self):
+        
+        self.app = App.get_app()
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+
         self.db = DB
         # do once per test
         load_data('%s/data/minimal.json' % TEST_DIR)
@@ -52,6 +57,8 @@ class GeoHealthCheckTest(unittest.TestCase):
         self.db.drop_all()
         self.db.session.commit()
         self.db.session.close()
+
+        self.app_context.pop()
 
     def testPluginsPresent(self):
 

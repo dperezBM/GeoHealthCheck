@@ -831,80 +831,83 @@ def get_tag_counts():
 
 
 def load_data(file_path):
-    # Beware!
-    DB.drop_all()
-    db_commit()
+    flask_app = App.get_app()
 
-    DB.create_all()
+    with flask_app.app_context():
+        # Beware!
+        DB.drop_all()
+        db_commit()
 
-    with open(file_path) as ff:
-        objects = json.load(ff)
+        DB.create_all()
 
-    # add users, keeping track of DB objects
-    users = {}
-    for user_name in objects['users']:
-        user = objects['users'][user_name]
-        user = User(user['username'],
-                    user['password'],
-                    user['email'],
-                    user['role'])
-        users[user_name] = user
-        DB.session.add(user)
+        with open(file_path) as ff:
+            objects = json.load(ff)
 
-    # add tags, keeping track of DB objects
-    tags = {}
-    for tag_str in objects['tags']:
-        tag = objects['tags'][tag_str]
+        # add users, keeping track of DB objects
+        users = {}
+        for user_name in objects['users']:
+            user = objects['users'][user_name]
+            user = User(user['username'],
+                        user['password'],
+                        user['email'],
+                        user['role'])
+            users[user_name] = user
+            DB.session.add(user)
 
-        tag = Tag(tag)
-        tags[tag_str] = tag
-        DB.session.add(tag)
+        # add tags, keeping track of DB objects
+        tags = {}
+        for tag_str in objects['tags']:
+            tag = objects['tags'][tag_str]
 
-    # add Resources, keeping track of DB objects
-    resources = {}
-    for resource_name in objects['resources']:
-        resource = objects['resources'][resource_name]
+            tag = Tag(tag)
+            tags[tag_str] = tag
+            DB.session.add(tag)
 
-        resource_tags = []
-        for tag_str in resource['tags']:
-            resource_tags.append(tags[tag_str])
+        # add Resources, keeping track of DB objects
+        resources = {}
+        for resource_name in objects['resources']:
+            resource = objects['resources'][resource_name]
 
-        resource = Resource(users[resource['owner']],
-                            resource['resource_type'],
-                            resource['title'],
-                            resource['url'],
-                            resource_tags)
+            resource_tags = []
+            for tag_str in resource['tags']:
+                resource_tags.append(tags[tag_str])
 
-        resources[resource_name] = resource
-        DB.session.add(resource)
+            resource = Resource(users[resource['owner']],
+                                resource['resource_type'],
+                                resource['title'],
+                                resource['url'],
+                                resource_tags)
 
-    # add Probes, keeping track of DB objects
-    probes = {}
-    for probe_name in objects['probe_vars']:
-        probe = objects['probe_vars'][probe_name]
+            resources[resource_name] = resource
+            DB.session.add(resource)
 
-        probe = ProbeVars(resources[probe['resource']],
-                          probe['probe_class'],
-                          probe['parameters'],
-                          )
+        # add Probes, keeping track of DB objects
+        probes = {}
+        for probe_name in objects['probe_vars']:
+            probe = objects['probe_vars'][probe_name]
 
-        probes[probe_name] = probe
-        DB.session.add(probe)
+            probe = ProbeVars(resources[probe['resource']],
+                            probe['probe_class'],
+                            probe['parameters'],
+                            )
 
-    # add Checks, keeping track of DB objects
-    checks = {}
-    for check_name in objects['check_vars']:
-        check = objects['check_vars'][check_name]
+            probes[probe_name] = probe
+            DB.session.add(probe)
 
-        check = CheckVars(probes[check['probe_vars']],
-                          check['check_class'],
-                          check['parameters'],
-                          )
+        # add Checks, keeping track of DB objects
+        checks = {}
+        for check_name in objects['check_vars']:
+            check = objects['check_vars'][check_name]
 
-        checks[check_name] = check
-        DB.session.add(check)
+            check = CheckVars(probes[check['probe_vars']],
+                            check['check_class'],
+                            check['parameters'],
+                            )
 
-    db_commit()
+            checks[check_name] = check
+            DB.session.add(check)
+
+        db_commit()
 
 
 # commit or rollback shorthand
@@ -922,61 +925,62 @@ if __name__ == '__main__':
 
     APP = App.get_app()
 
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'create':
-            print('Creating database objects')
-            DB.create_all()
+    with APP.app_context():
+        if len(sys.argv) > 1:
+            if sys.argv[1] == 'create':
+                print('Creating database objects')
+                DB.create_all()
 
-            print('Creating superuser account')
-            if len(sys.argv) == 5:  # username/password/email sent
-                username = sys.argv[2]
-                password1 = sys.argv[3]
-                email1 = sys.argv[4]
-            else:
-                username = input('Enter your username: ').strip()
-                password1 = input('Enter your password: ').strip()
-                password2 = input('Enter your password again: ').strip()
-                if password1 != password2:
-                    raise ValueError('Passwords must match')
-                email1 = input('Enter your email: ').strip()
-                email2 = input('Enter your email again: ').strip()
-                if email1 != email2:
-                    raise ValueError('Emails must match')
-
-            user_to_add = User(username, password1, email1, role='admin')
-            DB.session.add(user_to_add)
-            db_commit()
-        elif sys.argv[1] == 'drop':
-            print('Dropping database objects')
-            DB.drop_all()
-            db_commit()
-        elif sys.argv[1] == 'load':
-            print('Load database from JSON file (e.g. tests/fixtures.json)')
-            if len(sys.argv) > 2:
-                file_path = sys.argv[2]
-                yesno = 'n'
-                if len(sys.argv) == 3:
-                    print('WARNING: all DB data will be lost! Proceed?')
-                    yesno = input(
-                        'Enter y (proceed) or n (abort): ').strip()
-                elif len(sys.argv) == 4:
-                    yesno = sys.argv[3]
+                print('Creating superuser account')
+                if len(sys.argv) == 5:  # username/password/email sent
+                    username = sys.argv[2]
+                    password1 = sys.argv[3]
+                    email1 = sys.argv[4]
                 else:
-                    sys.exit(0)
+                    username = input('Enter your username: ').strip()
+                    password1 = input('Enter your password: ').strip()
+                    password2 = input('Enter your password again: ').strip()
+                    if password1 != password2:
+                        raise ValueError('Passwords must match')
+                    email1 = input('Enter your email: ').strip()
+                    email2 = input('Enter your email again: ').strip()
+                    if email1 != email2:
+                        raise ValueError('Emails must match')
 
-                if yesno == 'y':
-                    print('Loading data....')
-                    load_data(file_path)
-                    print('Data loaded')
+                user_to_add = User(username, password1, email1, role='admin')
+                DB.session.add(user_to_add)
+                db_commit()
+            elif sys.argv[1] == 'drop':
+                print('Dropping database objects')
+                DB.drop_all()
+                db_commit()
+            elif sys.argv[1] == 'load':
+                print('Load database from JSON file (e.g. tests/fixtures.json)')
+                if len(sys.argv) > 2:
+                    file_path = sys.argv[2]
+                    yesno = 'n'
+                    if len(sys.argv) == 3:
+                        print('WARNING: all DB data will be lost! Proceed?')
+                        yesno = input(
+                            'Enter y (proceed) or n (abort): ').strip()
+                    elif len(sys.argv) == 4:
+                        yesno = sys.argv[3]
+                    else:
+                        sys.exit(0)
+
+                    if yesno == 'y':
+                        print('Loading data....')
+                        load_data(file_path)
+                        print('Data loaded')
+                    else:
+                        print('Aborted')
                 else:
-                    print('Aborted')
-            else:
-                print('Provide path to JSON file, e.g. tests/fixtures.json')
+                    print('Provide path to JSON file, e.g. tests/fixtures.json')
 
-        elif sys.argv[1] == 'run':
-            print('NOTICE: models.py no longer here.')
-            print('Use: python3 healthcheck.py or upcoming cli.py')
-        elif sys.argv[1] == 'flush':
-            flush_runs()
+            elif sys.argv[1] == 'run':
+                print('NOTICE: models.py no longer here.')
+                print('Use: python3 healthcheck.py or upcoming cli.py')
+            elif sys.argv[1] == 'flush':
+                flush_runs()
 
-        DB.session.remove()
+            DB.session.remove()
