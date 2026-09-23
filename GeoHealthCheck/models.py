@@ -31,7 +31,7 @@
 import json
 import logging
 from datetime import datetime, timedelta, timezone
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import URLSafeTimedSerializer as Serializer
 from sqlalchemy import func, and_
 
 from sqlalchemy.orm import deferred
@@ -725,9 +725,9 @@ class User(DB.Model):
         # https://passlib.readthedocs.io/en/stable/narr/hash-tutorial.html
         return util.create_hash(string)
 
-    def get_token(self, expiration=7200):
-        s = Serializer(APP.config['SECRET_KEY'], expiration)
-        return s.dumps({'user': self.get_id()}).decode('utf-8')
+    def get_token(self):
+        s = Serializer(APP.config['SECRET_KEY'])
+        return s.dumps({'user': self.get_id()})
 
     def is_authenticated(self):
         return True
@@ -745,10 +745,10 @@ class User(DB.Model):
         self.password = self.encrypt(password)
 
     @staticmethod
-    def verify_token(token):
+    def verify_token(token, expiration=7200):
         s = Serializer(APP.config['SECRET_KEY'])
         try:
-            data = s.loads(token)
+            data = s.loads(token, max_age = expiration)
         except Exception:
             return None
         user_id = data.get('user')
