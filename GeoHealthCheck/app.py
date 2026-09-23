@@ -131,12 +131,6 @@ def shutdown_session(exception=None):
     DB.session.remove()
 
 
-@BABEL.localeselector
-def get_locale():
-    return g.get('current_lang', 'en')
-    # return request.accept_languages.best_match(LANGUAGES.keys())
-
-
 @LOGIN_MANAGER.user_loader
 def load_user(identifier):
     return DB.session.get(User, int(identifier))
