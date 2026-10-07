@@ -818,7 +818,7 @@ def get_last_run_per_resource():
 
     # Use raw query on SQLAlchemy, as the programmatic buildup
     # would be overly complex, if even possible.
-    last_runs = DB.session.execute(sql)
+    last_runs = DB.session.execute(text(sql))
     return last_runs
 
 
