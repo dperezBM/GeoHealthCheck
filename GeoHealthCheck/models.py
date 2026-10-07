@@ -32,7 +32,7 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 from itsdangerous import URLSafeTimedSerializer as Serializer
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, text
 
 from sqlalchemy.orm import deferred
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
