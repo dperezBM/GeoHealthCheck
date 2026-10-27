@@ -109,8 +109,8 @@ test = "pytest --md=report.md"
 # Production WSGI server (used by the Docker image via gunicorn's gevent
 # worker). Sourced from conda-forge; formerly apt python3-gunicorn/gevent.
 [tool.pixi.feature.server.dependencies]
-gunicorn = "==26.0.0"
-gevent = "==26.5.0"
+gunicorn = "==26.2.0"
+gevent = "==26.9.0"
 
 [tool.pixi.environments]
 # dev and prod share exactly the same versions for shared dependencies.
