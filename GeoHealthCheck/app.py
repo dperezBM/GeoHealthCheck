@@ -66,10 +66,12 @@ LOGIN_MANAGER.init_app(APP)
 
 LANGUAGES = (
     ('en', 'English'),
+    ('az', 'Azərbaycanca'),
     ('fr', 'Français'),
     ('de', 'German'),
     ('nl_NL', 'Nederlands (Nederland)'),
     ('es_BO', 'Español (Bolivia)'),
+    ('es_AR', 'Español (Argentina)'),
     ('hr_HR', 'Croatian (Croatia)'),
     ('pt_BR', 'Portuguese (Brazil)')
 )
