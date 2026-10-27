@@ -51,18 +51,19 @@ LOGGER = logging.getLogger(__name__)
 
 # Complete handle of old runs deletion
 def flush_runs():
-    retention_days = int(APP.config['GHC_RETENTION_DAYS'])
-    LOGGER.info('Flushing runs older than %d days' % retention_days)
-    all_runs = Run.query.all()
-    run_count = 0
-    for run in all_runs:
-        days_old = (datetime.now(timezone.utc) -
+    with APP.app_context():
+        retention_days = int(APP.config['GHC_RETENTION_DAYS'])
+        LOGGER.info('Flushing runs older than %d days' % retention_days)
+        all_runs = Run.query.all()
+        run_count = 0
+        for run in all_runs:
+            days_old = (datetime.now(timezone.utc) -
                     run.checked_datetime.replace(tzinfo=timezone.utc)).days
-        if days_old > retention_days:
-            run_count += 1
-            DB.session.delete(run)
-    db_commit()
-    LOGGER.info('Deleted %d Runs' % run_count)
+            if days_old > retention_days:
+                run_count += 1
+                DB.session.delete(run)
+        db_commit()
+        LOGGER.info('Deleted %d Runs' % run_count)
 
         DB.session.remove()
 
